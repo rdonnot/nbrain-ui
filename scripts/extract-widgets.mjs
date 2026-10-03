@@ -1,0 +1,10 @@
+import fs from 'node:fs';import ts from 'typescript';
+const path=process.argv[2]||'../app-ui-review/showcontrol-ui-bundle/code/frontend/src/lib/constants.ts';
+const code=fs.readFileSync(path,'utf8'),source=ts.createSourceFile('constants.ts',code,ts.ScriptTarget.Latest,true);
+const tables={};function walk(n){if(ts.isVariableDeclaration(n)&&ts.isIdentifier(n.name)&&n.initializer)tables[n.name.text]=n.initializer;ts.forEachChild(n,walk)}walk(source);
+const name=n=>n?.text??n?.getText(source);const value=n=>ts.isStringLiteral(n)?n.text:ts.isNumericLiteral(n)?Number(n.text):ts.isArrayLiteralExpression(n)?n.elements.map(value):ts.isObjectLiteralExpression(n)?Object.fromEntries(n.properties.filter(ts.isPropertyAssignment).map(p=>[name(p.name),value(p.initializer)])):undefined;
+const categories=value(tables.WIDGET_CATEGORIES),palette=value(tables.WIDGET_PALETTE);const props=tables.WIDGET_DEFAULTS.properties.filter(ts.isPropertyAssignment);
+const definitions=props.map(p=>{const d=value(p.initializer);const cats=categories.filter(c=>c.items.includes(d.type)).map(c=>c.label);return {id:d.type,label:palette.find(x=>x.type===d.type)?.label||d.label,width:d.w,height:d.h,category:cats[0]||'Internal',categories:cats,source:'src/lib/constants.ts · WIDGET_DEFAULTS',legacyDefaultColor:d.color}});
+const ids=definitions.map(x=>x.id);if(new Set(ids).size!==ids.length)throw Error('Duplicate definition');
+fs.writeFileSync('src/widgets/catalog-data.ts','// Extracted from the user-supplied registry; do not invent registry IDs.\nexport const widgetDefinitions = '+JSON.stringify(definitions,null,2)+' as const;\nexport type WidgetId = typeof widgetDefinitions[number]["id"];\n');
+fs.writeFileSync('widget-coverage.json',JSON.stringify({count:definitions.length,source:path,definitions},null,2));console.log(ids.length+' registry entries: '+ids.join(', '));

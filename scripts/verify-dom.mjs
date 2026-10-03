@@ -1,0 +1,42 @@
+import fs from 'node:fs';
+import {build} from 'esbuild';
+import {JSDOM,VirtualConsole} from 'jsdom';
+const result=await build({stdin:{contents:"import React from 'react';import{createRoot}from'react-dom/client';import App from './src/App';createRoot(document.getElementById('root')).render(<App/>);",resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,format:'iife',define:{'process.env.NODE_ENV':'"production"'}});
+const failures=[],checks=[];
+const vc=new VirtualConsole();vc.on('jsdomError',e=>failures.push(e.message));
+const dom=new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>',{url:'https://nbrain.test',runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:vc});
+const w=dom.window;
+w.matchMedia=()=>({matches:false,addListener(){},removeListener(){},addEventListener(){},removeEventListener(){}});
+w.IntersectionObserver=class{observe(){}unobserve(){}disconnect(){}};
+w.ResizeObserver=class{observe(){}unobserve(){}disconnect(){}};
+w.HTMLElement.prototype.scrollIntoView=function(){};
+w.Element.prototype.scrollTo=function(){};
+w.URL.createObjectURL=()=> 'blob:nbrain-test';w.URL.revokeObjectURL=()=>{};
+w.HTMLAnchorElement.prototype.click=function(){};
+w.eval(result.outputFiles[0].text);
+const wait=()=>new Promise(r=>setTimeout(r,150));await wait();
+const doc=w.document;
+function check(name,condition){if(!condition)failures.push(name);else checks.push(name)}
+function click(el){if(!el)throw new Error('Missing target');el.dispatchEvent(new w.MouseEvent('click',{bubbles:true}))}
+function btn(text){return [...doc.querySelectorAll('button')].find(b=>b.textContent.trim()===text)}
+check('Three floating production windows render',doc.querySelectorAll('.nb-floating-window').length===3);
+click(doc.querySelector('[aria-label="Minimize Render inspector"]'));await wait();check('Window minimizes to dock',doc.querySelectorAll('.nb-floating-window').length===2);click(btn('Inspector'));await wait();check('Dock restores window',doc.querySelectorAll('.nb-floating-window').length===3);
+click(doc.querySelector('[aria-label="Close Agent intelligence"]'));await wait();check('Floating window closes',doc.querySelectorAll('.nb-floating-window').length===2);click(btn('Restore windows'));await wait();check('Restore windows resets workspace',doc.querySelectorAll('.nb-floating-window').length===3);
+check('All 12 review sections render',doc.querySelectorAll('.board-section').length===12);
+check('Strong core exists',doc.querySelectorAll('.core-active').length>=4);
+click(doc.querySelector('[aria-label="Toggle theme"]'));await wait();check('Light theme switches',doc.documentElement.dataset.theme==='light');
+click(doc.querySelector('[aria-label="Approve Foundations"]'));await wait();check('Section approval persists',JSON.parse(w.localStorage.getItem('nb-approvals')).includes('foundations'));
+click(btn('Open dialog'));await wait();check('Dialog opens',doc.querySelector('.nb-dialog[role="dialog"]')?.textContent.includes('Create a new version'));
+click(doc.querySelector('[aria-label="Close"]'));await wait();check('Dialog closes',!doc.querySelector('.nb-dialog[role="dialog"]'));
+click(btn('Assets'));await wait();check('Tabs change content',doc.querySelector('[role="tabpanel"]')?.textContent.includes('24 shots'));
+click(doc.querySelector('[aria-label="Favorite"]'));await wait();check('Toggle pressed state updates',doc.querySelector('[aria-label="Favorite"]').getAttribute('aria-pressed')==='true');
+click(btn('Approve cut'));await wait();check('Approval gate updates',!!btn('Approved'));
+click(btn('Advance demo state'));await wait();check('Agent state transition updates',doc.querySelector('.agent-stack .agent-card:nth-child(2)')?.textContent.includes('Ready'));
+click(doc.querySelector('[aria-label="Open Agent model"]'));await wait();check('Combobox popup opens',!!doc.querySelector('[role="listbox"]'));
+w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await wait();
+const input=doc.querySelector('[aria-label="Filter assets"]');const setter=Object.getOwnPropertyDescriptor(w.HTMLInputElement.prototype,'value').set;setter.call(input,'Scene Bible');input.dispatchEvent(new w.Event('input',{bubbles:true}));await wait();check('Asset table filters rows',doc.querySelectorAll('.nb-table tbody tr').length===1);
+const named=[...doc.querySelectorAll('.nb-field')].find(f=>f.querySelector('label')?.textContent==='Project name')?.querySelector('input');setter.call(named,'');named.dispatchEvent(new w.Event('input',{bubbles:true}));await wait();click(btn('Validate form'));await wait();check('Validation displays error',doc.querySelector('.field-error')?.textContent==='Enter a project name.');
+click(btn('Tune system'));await wait();check('Settings sheet opens',doc.querySelector('.nb-dialog[role="dialog"]')?.textContent.includes('Tune the system'));click(doc.querySelector('.nb-dialog[role="dialog"] .nb-switch'));await wait();check('Motion preference turns effects off',doc.documentElement.dataset.motion==='off');click(doc.querySelector('[aria-label="Close"]'));await wait();
+click(btn('Export review'));await wait();check('Review JSON export completes',true);
+check('No unexpected runtime errors',failures.length===0);
+fs.writeFileSync('dom-checks.json',JSON.stringify({checks,failures},null,2));console.log(JSON.stringify({checks:checks.length,failures},null,2));dom.window.close();process.exit(failures.length?1:0);

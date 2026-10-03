@@ -1,0 +1,16 @@
+{
+  "checks": [
+    "All 74 registry widgets render",
+    "Each widget has an exact unique registry ID",
+    "Engine slots are explicitly presented as previews",
+    "Joystick keyboard input updates coordinates",
+    "Per-widget approval persists",
+    "Usage tab documents package imports",
+    "Deep links select an engine host",
+    "Engine implementation disclosed",
+    "Gallery lists 74 individual previews",
+    "Registry search isolates a widget",
+    "No runtime errors"
+  ],
+  "failures": []
+}

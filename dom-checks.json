@@ -1,0 +1,27 @@
+{
+  "checks": [
+    "Three floating production windows render",
+    "Window minimizes to dock",
+    "Dock restores window",
+    "Floating window closes",
+    "Restore windows resets workspace",
+    "All 12 review sections render",
+    "Strong core exists",
+    "Light theme switches",
+    "Section approval persists",
+    "Dialog opens",
+    "Dialog closes",
+    "Tabs change content",
+    "Toggle pressed state updates",
+    "Approval gate updates",
+    "Agent state transition updates",
+    "Combobox popup opens",
+    "Asset table filters rows",
+    "Validation displays error",
+    "Settings sheet opens",
+    "Motion preference turns effects off",
+    "Review JSON export completes",
+    "No unexpected runtime errors"
+  ],
+  "failures": []
+}

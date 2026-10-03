@@ -1,0 +1,53 @@
+/* ───────────────────────────────────────────────────────────────────────────
+ * src/styles/index.css  —  the only stylesheet index.tsx imports.
+ *
+ * This file is a table of contents and nothing else. Every rule in the app
+ * lives in one of the files below, and the order they appear here IS the
+ * cascade order. Change nothing else to change precedence.
+ *
+ * Order rationale:
+ *   tailwindcss   declares @layer theme, base, components, utilities
+ *   tokens        variables only — must precede anything that reads them
+ *   motion        easing/duration tokens + keyframes, same reason
+ *   base          @layer base — reset and element styling
+ *   vendor        react-grid-layout / react-resizable (see note below)
+ *   grid-canvas   overrides vendor, so it follows it
+ *   widget-chrome @layer components — card shell
+ *   chat          agent transcript (caret, shimmer)
+ *   timeline      the NLE widget's toolbar hover states
+ *
+ * Vendor CSS is UNLAYERED, and unlayered rules beat every layered rule
+ * regardless of specificity. That's why grid-canvas.css is also unlayered and
+ * keeps its specificity hack, while widget-chrome.css (which overrides nothing
+ * from a vendor) is free to sit in @layer components.
+ *
+ * If your Vite setup can't resolve the bare package specifiers below, move
+ * those two lines back into index.tsx ABOVE the `import "./styles/index.css"`
+ * line — the resulting order is identical.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+@import "tailwindcss";
+
+@import "./tokens.css";
+@import "./nbrain-material.css";
+@import "./motion.css";
+@import "./base.css";
+
+@import "react-grid-layout/css/styles.css";
+@import "react-resizable/css/styles.css";
+@import "./grid-canvas.css";
+
+@import "./widget-chrome.css";
+@import "./chat.css";
+@import "./timeline.css";
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * shadcn/ui note:
+ *   `npx shadcn@latest init` wants to write its OWN token block (--background,
+ *   --foreground, --primary, --border, --ring, …) plus a .dark variant. Point
+ *   it at tokens.css, not here — this file stays imports-only.
+ *   Those tokens drive shadcn components; the app tokens drive your chrome and
+ *   canvas. They coexist. If you later want a single source of truth, alias
+ *   shadcn's --border/--background/--foreground to your --border/--app/--fg
+ *   inside each [data-theme] block in tokens.css.
+ * ─────────────────────────────────────────────────────────────────────────── */

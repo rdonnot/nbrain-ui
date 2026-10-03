@@ -1,0 +1,54 @@
+/* Host-app adapter. Load after tokens.css; does not replace canvas typography. */
+:root,[data-theme]{
+ --nb-glow-strength:.85;--nb-glass-opacity:86%;--nb-blur:22px;
+ --nb-energy:var(--acc);--nb-energy-hot:var(--acc-text);
+ --nb-glow-near:color-mix(in srgb,var(--nb-energy) calc(38% * var(--nb-glow-strength)),transparent);
+ --nb-glow-far:color-mix(in srgb,var(--nb-energy) calc(18% * var(--nb-glow-strength)),transparent);
+ --nb-glow:0 0 8px var(--nb-glow-near),0 0 24px var(--nb-glow-far);
+ --nb-glass:color-mix(in srgb,var(--widget) var(--nb-glass-opacity),transparent);
+ --nb-rim:color-mix(in srgb,var(--fg) 22%,transparent);
+ --nb-lift:0 2px 4px #0006,0 16px 32px #0006,0 48px 85px #0007;
+ --nb-bevel:inset 0 1px 0 color-mix(in srgb,var(--fg) 17%,transparent),inset 0 -1px 0 #0003;
+ --background:var(--app);--foreground:var(--fg);--card:var(--widget);--card-foreground:var(--fg);
+ --popover:var(--surface);--popover-foreground:var(--fg);
+ --primary:var(--acc);--primary-foreground:var(--acc-fg);
+ --secondary:var(--surface);--secondary-foreground:var(--fg);
+ --muted-foreground:var(--muted);--accent:var(--raised-2);--accent-foreground:var(--fg);
+ --input:var(--line-2);--ring:var(--acc-strong);--destructive:var(--danger);--radius:10px;
+}
+/* Existing --muted is a TEXT color. Never redefine it as a surface. */
+@theme inline {
+ --color-background:var(--background);--color-foreground:var(--foreground);
+ --color-card:var(--card);--color-card-foreground:var(--card-foreground);
+ --color-primary:var(--primary);--color-primary-foreground:var(--primary-foreground);
+ --color-secondary:var(--secondary);--color-secondary-foreground:var(--secondary-foreground);
+ --color-muted-foreground:var(--muted-foreground);--color-accent:var(--accent);--color-accent-foreground:var(--accent-foreground);
+ --color-input:var(--input);--color-ring:var(--ring);--color-destructive:var(--destructive);
+}
+[data-theme=paper]{--nb-lift:0 2px 4px #17203510,0 16px 32px #17203520,0 48px 85px #17203526;--nb-rim:#ffffffd0;--nb-glow-strength:.45}
+.nbrain-glass-panel,.nbrain-modal-popup{
+ color:var(--fg);border:1px solid var(--nb-rim);border-radius:var(--radius);
+ background:linear-gradient(145deg,#ffffff14,transparent 38%,#ffffff04 75%,#ffffff09),var(--nb-glass);
+ backdrop-filter:blur(var(--nb-blur)) saturate(110%);-webkit-backdrop-filter:blur(var(--nb-blur)) saturate(110%);
+ box-shadow:var(--nb-bevel),var(--nb-lift);isolation:isolate;
+}
+.nbrain-glass-panel[data-active=true]{border-color:var(--acc-border);box-shadow:var(--nb-bevel),var(--nb-glow),var(--nb-lift)}
+.nbrain-glass-panel:before,.nbrain-modal-popup:before{content:'';position:absolute;left:12%;right:20%;top:0;height:1px;background:linear-gradient(90deg,transparent,var(--nb-rim),transparent);pointer-events:none}
+.nbrain-glass-panel[data-active=true]:before{background:linear-gradient(90deg,transparent,var(--nb-energy-hot),var(--nb-energy),transparent);box-shadow:var(--nb-glow)}
+.nbrain-panel-header{border-bottom:1px solid var(--line);background:linear-gradient(135deg,var(--raised),transparent);touch-action:none}
+.nbrain-panel-header:focus-visible,.nbrain-panel-resize:focus-visible{outline:2px solid var(--ring);outline-offset:-3px}
+.nbrain-panel-header button:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.nbrain-modal-backdrop{position:fixed;inset:0;z-index:100;background:#0006;backdrop-filter:blur(7px);transition:opacity .18s}
+.nbrain-modal-popup{position:fixed;left:50%;top:50%;translate:-50% -50%;z-index:101;display:flex;flex-direction:column;overflow:hidden;border-radius:16px;transition:opacity .18s,transform .18s}
+.nbrain-modal-popup[data-starting-style],.nbrain-modal-popup[data-ending-style]{opacity:0;transform:translateY(8px) scale(.985)}
+.nbrain-modal-backdrop[data-starting-style],.nbrain-modal-backdrop[data-ending-style]{opacity:0}
+.nbrain-energy-primary:not(:disabled){box-shadow:var(--nb-bevel),var(--nb-glow)}
+.nbrain-energy-primary:focus-visible,[data-slot=button]:focus-visible{box-shadow:var(--nb-glow);outline:2px solid var(--ring);outline-offset:3px}
+.nbrain-core-progress{height:3px;border-radius:3px;background:linear-gradient(90deg,var(--acc-deep),var(--nb-energy),var(--nb-energy-hot));box-shadow:var(--nb-glow)}
+/* Make shadcn bg-muted hover surfaces neutral without changing text-muted. */
+[data-slot=button].hover\:bg-muted:hover,[data-slot=button].aria-expanded\:bg-muted[aria-expanded=true]{background:var(--raised-2)}
+@supports not (backdrop-filter:blur(1px)){.nbrain-glass-panel,.nbrain-modal-popup{background:var(--widget)}}
+@media(prefers-reduced-motion:reduce){.nbrain-modal-popup,.nbrain-modal-backdrop{transition:none}}
+@media(forced-colors:active){.nbrain-glass-panel,.nbrain-modal-popup{background:Canvas;border:1px solid CanvasText}.nbrain-glass-panel[data-active=true]{border:2px solid Highlight}}
+
+[data-accent="sapphire"]{--acc-50:#eef2ff;--acc-100:#dce5ff;--acc-200:#bdcdff;--acc-300:#99b3ff;--acc-400:#7695fb;--acc-500:#4167e9;--acc-600:#284acf;--acc-700:#2438a2;--acc-800:#202f79;--acc-900:#17244f;--acc-950:#0b1430;}

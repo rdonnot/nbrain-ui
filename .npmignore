@@ -1,0 +1,8 @@
+src/
+node_modules/
+dist-demo/
+.build/
+.tmp/
+.qa-bin/
+.consumer-test/
+artifacts/

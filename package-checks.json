@@ -1,0 +1,13 @@
+{
+  "package": "nbrain-ui-0.3.3.tgz",
+  "checks": [
+    "Install tarball into independent consumer",
+    "ESM and SSR render",
+    "React and Motion peer imports",
+    "Root and widgets subpath declarations compile",
+    "74 exact registry IDs exported",
+    "Scoped and namespaced CSS shipped",
+    "Fonts and approved identity asset shipped"
+  ],
+  "failures": []
+}

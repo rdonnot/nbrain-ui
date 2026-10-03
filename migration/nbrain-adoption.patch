@@ -1,0 +1,333 @@
+--- a/frontend/components.json
++++ b/frontend/components.json
+@@ -5,12 +5,12 @@
+   "tsx": true,
+   "tailwind": {
+     "config": "",
+-    "css": "src/index.css",
++    "css": "src/styles/tokens.css",
+     "baseColor": "neutral",
+     "cssVariables": true,
+     "prefix": ""
+   },
+-  "iconLibrary": "hugeicons",
++  "iconLibrary": "lucide",
+   "rtl": false,
+   "aliases": {
+     "components": "@/components",
+--- a/frontend/src/components/ui/Modal.tsx
++++ b/frontend/src/components/ui/Modal.tsx
+@@ -23,9 +23,11 @@
+  * two components; the mistake was having three of THIS one.
+  */
+ 
+-import { useEffect, type ReactNode } from "react";
++import { type ReactNode } from "react";
+ import { motion, useReducedMotion } from "motion/react";
+ import { X, Loader2, TriangleAlert, type LucideIcon } from "lucide-react";
++
++import { Dialog as D } from "@base-ui/react/dialog";
+ 
+ type Size = "sm" | "md" | "lg";
+ 
+@@ -49,51 +51,22 @@
+   lg: "w-[min(94vw,880px)] h-[min(88vh,700px)]",
+ };
+ 
+-export function Modal({
+-  onClose,
+-  size = "md",
+-  dismissable = true,
+-  children,
+-}: {
+-  onClose: () => void;
+-  size?: Size;
+-  /** false for a modal there is no way past — e.g. the login gate. */
+-  dismissable?: boolean;
+-  children: ReactNode;
+-}) {
+-  const reduce = useReducedMotion();
+-
+-  useEffect(() => {
+-    if (!dismissable) return;
+-    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+-    document.addEventListener("keydown", esc);
+-    return () => document.removeEventListener("keydown", esc);
+-  }, [onClose, dismissable]);
+-
+-  return (
+-    <motion.div
+-      initial={{ opacity: 0 }}
+-      animate={{ opacity: 1 }}
+-      exit={{ opacity: 0 }}
+-      transition={{ duration: 0.15 }}
+-      onClick={() => { if (dismissable) onClose(); }}
+-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+-    >
+-      <motion.div
+-        initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
+-        animate={{ opacity: 1, y: 0, scale: 1 }}
+-        exit={reduce ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.98 }}
+-        transition={{ duration: 0.18, ease: "easeOut" }}
+-        onClick={e => e.stopPropagation()}
+-        className={
+-          "flex flex-col overflow-hidden rounded-2xl " +
+-          "border border-line bg-neutral-950 shadow-2xl " + SIZE[size]
+-        }
+-      >
+-        {children}
+-      </motion.div>
+-    </motion.div>
+-  );
++/** Keeps the legacy mount/unmount API; Base UI owns modal focus and dismissal. */
++export function Modal({ onClose, size = "md", dismissable = true, title = "n’brain", children }: {
++  onClose: () => void; size?: Size; dismissable?: boolean;
++  /** Supply a localized, meaningful title at each call site. */
++  title?: string; children: ReactNode;
++}) {
++  return <D.Root open disablePointerDismissal={!dismissable} onOpenChange={(open, details) => {
++    if (!dismissable) { details.cancel(); return; }
++    if (!open) onClose();
++  }}><D.Portal>
++    <D.Backdrop className="nbrain-modal-backdrop" />
++    <D.Popup className={"nbrain-modal-popup " + SIZE[size]}>
++      <D.Title className="sr-only">{title}</D.Title>
++      {children}
++    </D.Popup>
++  </D.Portal></D.Root>;
+ }
+ 
+ export interface ModalTab<T extends string> {
+@@ -173,7 +146,7 @@
+   border: "1px solid var(--line)",
+   background: "var(--raised)",
+   padding: "0 12px",
+-  fontSize: 14, color: "#fff", outline: "none",
++  fontSize: 14, color: "var(--fg)", outline: "none",
+ };
+ 
+ export function SectionLabel({ children }: { children: ReactNode }) {
+--- a/frontend/src/components/ui/chrome/GlassPanel.tsx
++++ b/frontend/src/components/ui/chrome/GlassPanel.tsx
+@@ -53,7 +53,7 @@
+   id, title, icon, accent, defaultPos, width = 264, minWidth = 200,
+   resizable = false, onClose, headerExtra, bodyClassName, children,
+ }: Props) {
+-  const { containerRef, raisePanel, panelZ, accent: stageAccent, storagePrefix } = useChrome();
++  const { containerRef, raisePanel, panelZ, activePanelId, accent: stageAccent, storagePrefix } = useChrome();
+   const acc = accent ?? stageAccent;
+   const storeKey = `${storagePrefix}.panel.${id}`;
+ 
+@@ -161,29 +161,44 @@
+     apply();
+   }, [placement, width]);
+ 
++  const active = activePanelId === id;
++
+   return (
+     <div
+       ref={ref}
+       data-nodrag="1"
++      data-active={active}
++      role="region"
++      aria-label={title}
++      onFocusCapture={() => raisePanel(id)}
+       onPointerDown={() => raisePanel(id)}
+       onMouseDown={e => e.stopPropagation()}
+-      className="absolute left-0 top-0 select-none rounded-xl border border-line
+-                 bg-[rgba(17,18,22,0.78)] shadow-[0_8px_32px_rgba(0,0,0,0.45)]
+-                 backdrop-blur-md text-foreground"
++      className="nbrain-glass-panel absolute left-0 top-0 select-none text-foreground"
+       style={{ zIndex: panelZ(id), contain: "layout paint", willChange: "transform" }}
+     >
+       <div
++        tabIndex={0}
++        aria-label={`Move ${title} panel with arrow keys`}
++        onKeyDown={e => {
++          if (e.target !== e.currentTarget || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
++          e.preventDefault(); const step = e.shiftKey ? 24 : 8;
++          const point = clamp(placement.x + (e.key === "ArrowRight" ? step : e.key === "ArrowLeft" ? -step : 0), placement.y + (e.key === "ArrowDown" ? step : e.key === "ArrowUp" ? -step : 0), placement.w ?? width);
++          raisePanel(id); persist({ ...placement, ...point });
++        }}
+         onPointerDown={onHeaderDown}
+         onPointerMove={onMove}
+         onPointerUp={onUp}
+         onPointerCancel={onUp}
+-        className="flex h-8 cursor-grab items-center gap-2 rounded-t-xl px-2.5 active:cursor-grabbing"
++        className="nbrain-panel-header flex h-8 cursor-grab items-center gap-2 rounded-t-xl px-2.5 active:cursor-grabbing"
+       >
+         {icon && <span className="text-[var(--wgt-title)] leading-none" style={{ color: acc }}>{icon}</span>}
+         <span className="flex-1 truncate text-[var(--wgt-body)] font-medium tracking-wide">{title}</span>
+         {headerExtra}
+         <button
+           onClick={() => persist({ ...placement, collapsed: !placement.collapsed })}
++          type="button"
++          aria-expanded={!placement.collapsed}
++          aria-label={placement.collapsed ? "Expand panel" : "Collapse to header"}
+           title={placement.collapsed ? "Expand panel" : "Collapse to header"}
+           className="grid h-5 w-5 place-items-center rounded text-[var(--wgt-body)] text-fg-3 hover:bg-raised-2 hover:text-fg"
+         >
+@@ -192,6 +207,8 @@
+         {onClose && (
+           <button
+             onClick={onClose}
++            type="button"
++            aria-label="Close panel"
+             title="Close panel"
+             className="grid h-5 w-5 place-items-center rounded text-[var(--wgt-body)] text-fg-3 hover:bg-raised-2 hover:text-fg"
+           >×</button>
+@@ -207,11 +224,19 @@
+       )}
+ 
+       {resizable && !placement.collapsed && (
+-        <div
++        <button
++          type="button"
++          aria-label={`Resize ${title} panel`}
++          onKeyDown={e => {
++            if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return;
++            e.preventDefault(); const available = (containerRef.current?.clientWidth ?? 1000) - placement.x - INSET;
++            persist({ ...placement, w: Math.min(available, Math.max(Math.min(minWidth, available), (placement.w ?? width) + (e.key === "ArrowRight" ? 16 : -16))) });
++          }}
+           onPointerDown={onGripDown}
+           onPointerMove={onMove}
+           onPointerUp={onUp}
+-          className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 cursor-nwse-resize rounded-br-xl border-b-2 border-r-2 border-line-2"
++          onPointerCancel={onUp}
++          className="nbrain-panel-resize absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 cursor-nwse-resize rounded-br-xl border-b-2 border-r-2 border-line-2"
+         />
+       )}
+     </div>
+--- a/frontend/src/components/ui/chrome/PanelStage.tsx
++++ b/frontend/src/components/ui/chrome/PanelStage.tsx
+@@ -48,6 +48,8 @@
+   /** Raise on interaction; panelZ resolves the current z for an id. */
+   raisePanel: (id: string) => void;
+   panelZ: (id: string) => number;
++  /** Most recently raised window, including panels with caller-owned lifecycle. */
++  activePanelId?: string;
+   cleanMode: boolean;
+   setCleanMode: (v: boolean | ((v: boolean) => boolean)) => void;
+   /** The host is live — see the header. */
+@@ -91,7 +93,7 @@
+   try { localStorage.setItem(`${storagePrefix}.panels.open`, JSON.stringify([...open])); } catch { /* private mode */ }
+ }
+ 
+-export function ChromeProvider({ accent = "#00e5ff", storagePrefix = "chrome", containerRef, live = false, children }: {
++export function ChromeProvider({ accent = "var(--acc)", storagePrefix = "chrome", containerRef, live = false, children }: {
+   accent?: string;
+   /** Namespace for persisted placements and the open set. */
+   storagePrefix?: string;
+@@ -155,9 +157,9 @@
+   const value = useMemo<ChromeState>(() => ({
+     containerRef, accent, storagePrefix, panels, openIds,
+     openPanel, closePanel, togglePanel, registerPanel,
+-    raisePanel, panelZ, cleanMode, setCleanMode, live,
++    raisePanel, panelZ, activePanelId: order[order.length - 1], cleanMode, setCleanMode, live,
+   }), [containerRef, accent, storagePrefix, panels, openIds, openPanel, closePanel, togglePanel,
+-       registerPanel, raisePanel, panelZ, cleanMode, setCleanMode, live]);
++       registerPanel, raisePanel, panelZ, order, cleanMode, setCleanMode, live]);
+ 
+   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+ }
+--- a/frontend/src/lib/theme.ts
++++ b/frontend/src/lib/theme.ts
+@@ -76,6 +76,7 @@
+ 
+ // ── Accents ──────────────────────────────────────────────────────────────────
+ export const THEME_ACCENTS: ThemeAccent[] = [
++  { id: "sapphire", name: "n’brain Sapphire", ramp: {"50": "#eef2ff", "100": "#dce5ff", "200": "#bdcdff", "300": "#99b3ff", "400": "#7695fb", "500": "#4167e9", "600": "#284acf", "700": "#2438a2", "800": "#202f79", "900": "#17244f", "950": "#0b1430"} },
+   { id: "indigo",  name: "Indigo",  ramp: { 50: "#eef2ff", 100: "#e0e7ff", 200: "#c7d2fe", 300: "#a5b4fc", 400: "#818cf8", 500: "#6366f1", 600: "#4f46e5", 700: "#4338ca", 800: "#3730a3", 900: "#312e81", 950: "#1e1b4b" } },
+   { id: "sky",     name: "Sky",     ramp: { 50: "#f0f9ff", 100: "#e0f2fe", 200: "#bae6fd", 300: "#7dd3fc", 400: "#38bdf8", 500: "#0ea5e9", 600: "#0284c7", 700: "#0369a1", 800: "#075985", 900: "#0c4a6e", 950: "#082f49" } },
+   { id: "teal",    name: "Teal",    ramp: { 50: "#f0fdfa", 100: "#ccfbf1", 200: "#99f6e4", 300: "#5eead4", 400: "#2dd4bf", 500: "#14b8a6", 600: "#0d9488", 700: "#0f766e", 800: "#115e59", 900: "#134e4a", 950: "#042f2e" } },
+@@ -86,8 +87,8 @@
+   { id: "mono",    name: "Mono",    ramp: { 50: "#fafafa", 100: "#f4f4f5", 200: "#e4e4e7", 300: "#d4d4d8", 400: "#a1a1aa", 500: "#8b8b94", 600: "#71717a", 700: "#52525b", 800: "#3f3f46", 900: "#27272a", 950: "#18181b" } },
+ ];
+ 
+-export const DEFAULT_BASE   = "graphite";
+-export const DEFAULT_ACCENT = "indigo";
++export const DEFAULT_BASE   = "carbon";
++export const DEFAULT_ACCENT = "sapphire";
+ 
+ /**
+  * The ids that existed before base and accent were separate. Each one was a
+@@ -107,10 +108,10 @@
+ export const getBase = (id: string | undefined): ThemeBase =>
+   THEME_BASES.find(b => b.id === id)
+   ?? THEME_BASES.find(b => b.id === LEGACY_THEMES[id ?? ""]?.base)
+-  ?? THEME_BASES[0];
++  ?? THEME_BASES.find(b => b.id === DEFAULT_BASE)!;
+ 
+ export const getThemeAccent = (id: string | undefined): ThemeAccent =>
+-  THEME_ACCENTS.find(a => a.id === id) ?? THEME_ACCENTS[0];
++  THEME_ACCENTS.find(a => a.id === id) ?? THEME_ACCENTS.find(a => a.id === DEFAULT_ACCENT)!;
+ 
+ /** What a settings record means today. `accentId` unset on a legacy theme id
+  *  takes the hue that theme implied; unset otherwise is the default. */
+--- a/frontend/src/styles/index.css
++++ b/frontend/src/styles/index.css
+@@ -29,6 +29,7 @@
+ @import "tailwindcss";
+ 
+ @import "./tokens.css";
++@import "./nbrain-material.css";
+ @import "./motion.css";
+ @import "./base.css";
+ 
+--- a/frontend/src/styles/nbrain-material.css
++++ b/frontend/src/styles/nbrain-material.css
+@@ -0,0 +1,54 @@
++/* Host-app adapter. Load after tokens.css; does not replace canvas typography. */
++:root,[data-theme]{
++ --nb-glow-strength:.85;--nb-glass-opacity:86%;--nb-blur:22px;
++ --nb-energy:var(--acc);--nb-energy-hot:var(--acc-text);
++ --nb-glow-near:color-mix(in srgb,var(--nb-energy) calc(38% * var(--nb-glow-strength)),transparent);
++ --nb-glow-far:color-mix(in srgb,var(--nb-energy) calc(18% * var(--nb-glow-strength)),transparent);
++ --nb-glow:0 0 8px var(--nb-glow-near),0 0 24px var(--nb-glow-far);
++ --nb-glass:color-mix(in srgb,var(--widget) var(--nb-glass-opacity),transparent);
++ --nb-rim:color-mix(in srgb,var(--fg) 22%,transparent);
++ --nb-lift:0 2px 4px #0006,0 16px 32px #0006,0 48px 85px #0007;
++ --nb-bevel:inset 0 1px 0 color-mix(in srgb,var(--fg) 17%,transparent),inset 0 -1px 0 #0003;
++ --background:var(--app);--foreground:var(--fg);--card:var(--widget);--card-foreground:var(--fg);
++ --popover:var(--surface);--popover-foreground:var(--fg);
++ --primary:var(--acc);--primary-foreground:var(--acc-fg);
++ --secondary:var(--surface);--secondary-foreground:var(--fg);
++ --muted-foreground:var(--muted);--accent:var(--raised-2);--accent-foreground:var(--fg);
++ --input:var(--line-2);--ring:var(--acc-strong);--destructive:var(--danger);--radius:10px;
++}
++/* Existing --muted is a TEXT color. Never redefine it as a surface. */
++@theme inline {
++ --color-background:var(--background);--color-foreground:var(--foreground);
++ --color-card:var(--card);--color-card-foreground:var(--card-foreground);
++ --color-primary:var(--primary);--color-primary-foreground:var(--primary-foreground);
++ --color-secondary:var(--secondary);--color-secondary-foreground:var(--secondary-foreground);
++ --color-muted-foreground:var(--muted-foreground);--color-accent:var(--accent);--color-accent-foreground:var(--accent-foreground);
++ --color-input:var(--input);--color-ring:var(--ring);--color-destructive:var(--destructive);
++}
++[data-theme=paper]{--nb-lift:0 2px 4px #17203510,0 16px 32px #17203520,0 48px 85px #17203526;--nb-rim:#ffffffd0;--nb-glow-strength:.45}
++.nbrain-glass-panel,.nbrain-modal-popup{
++ color:var(--fg);border:1px solid var(--nb-rim);border-radius:var(--radius);
++ background:linear-gradient(145deg,#ffffff14,transparent 38%,#ffffff04 75%,#ffffff09),var(--nb-glass);
++ backdrop-filter:blur(var(--nb-blur)) saturate(110%);-webkit-backdrop-filter:blur(var(--nb-blur)) saturate(110%);
++ box-shadow:var(--nb-bevel),var(--nb-lift);isolation:isolate;
++}
++.nbrain-glass-panel[data-active=true]{border-color:var(--acc-border);box-shadow:var(--nb-bevel),var(--nb-glow),var(--nb-lift)}
++.nbrain-glass-panel:before,.nbrain-modal-popup:before{content:'';position:absolute;left:12%;right:20%;top:0;height:1px;background:linear-gradient(90deg,transparent,var(--nb-rim),transparent);pointer-events:none}
++.nbrain-glass-panel[data-active=true]:before{background:linear-gradient(90deg,transparent,var(--nb-energy-hot),var(--nb-energy),transparent);box-shadow:var(--nb-glow)}
++.nbrain-panel-header{border-bottom:1px solid var(--line);background:linear-gradient(135deg,var(--raised),transparent);touch-action:none}
++.nbrain-panel-header:focus-visible,.nbrain-panel-resize:focus-visible{outline:2px solid var(--ring);outline-offset:-3px}
++.nbrain-panel-header button:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
++.nbrain-modal-backdrop{position:fixed;inset:0;z-index:100;background:#0006;backdrop-filter:blur(7px);transition:opacity .18s}
++.nbrain-modal-popup{position:fixed;left:50%;top:50%;translate:-50% -50%;z-index:101;display:flex;flex-direction:column;overflow:hidden;border-radius:16px;transition:opacity .18s,transform .18s}
++.nbrain-modal-popup[data-starting-style],.nbrain-modal-popup[data-ending-style]{opacity:0;transform:translateY(8px) scale(.985)}
++.nbrain-modal-backdrop[data-starting-style],.nbrain-modal-backdrop[data-ending-style]{opacity:0}
++.nbrain-energy-primary:not(:disabled){box-shadow:var(--nb-bevel),var(--nb-glow)}
++.nbrain-energy-primary:focus-visible,[data-slot=button]:focus-visible{box-shadow:var(--nb-glow);outline:2px solid var(--ring);outline-offset:3px}
++.nbrain-core-progress{height:3px;border-radius:3px;background:linear-gradient(90deg,var(--acc-deep),var(--nb-energy),var(--nb-energy-hot));box-shadow:var(--nb-glow)}
++/* Make shadcn bg-muted hover surfaces neutral without changing text-muted. */
++[data-slot=button].hover\:bg-muted:hover,[data-slot=button].aria-expanded\:bg-muted[aria-expanded=true]{background:var(--raised-2)}
++@supports not (backdrop-filter:blur(1px)){.nbrain-glass-panel,.nbrain-modal-popup{background:var(--widget)}}
++@media(prefers-reduced-motion:reduce){.nbrain-modal-popup,.nbrain-modal-backdrop{transition:none}}
++@media(forced-colors:active){.nbrain-glass-panel,.nbrain-modal-popup{background:Canvas;border:1px solid CanvasText}.nbrain-glass-panel[data-active=true]{border:2px solid Highlight}}
++
++[data-accent="sapphire"]{--acc-50:#eef2ff;--acc-100:#dce5ff;--acc-200:#bdcdff;--acc-300:#99b3ff;--acc-400:#7695fb;--acc-500:#4167e9;--acc-600:#284acf;--acc-700:#2438a2;--acc-800:#202f79;--acc-900:#17244f;--acc-950:#0b1430;}

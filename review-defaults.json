@@ -1,0 +1,11 @@
+{
+  "theme": "dark",
+  "density": "comfortable",
+  "glow": 85,
+  "glass": 94,
+  "blur": 18,
+  "radius": 12,
+  "motion": true,
+  "elevation": 90,
+  "bevel": 65
+}

@@ -1,0 +1,15 @@
+{
+  "checks": [
+    "Legacy GlassPanel props render both panels",
+    "Latest raised panel receives active energy state",
+    "Focusing panel content updates active order",
+    "Keyboard placement persists under original key",
+    "Keyboard resizing persists width",
+    "Legacy collapse behavior preserved",
+    "Modal has supplied accessible title",
+    "Dismissable modal closes on Escape",
+    "Mandatory gate refuses Escape dismissal",
+    "Mandatory gate can complete normally"
+  ],
+  "failures": []
+}

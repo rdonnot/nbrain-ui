@@ -1,0 +1,127 @@
+{
+  "name": "nbrain-ui",
+  "version": "0.3.3",
+  "count": 89,
+  "groups": {
+    "Circular inspector": [
+      "RadialInspector",
+      "RadialInspectorOverlay",
+      "RadialInspectorContextMenu",
+      "RotaryDial",
+      "RadialMenu"
+    ],
+    "System": [
+      "NBrainProvider",
+      "ParameterRow",
+      "NumericScrub",
+      "WidgetFrame",
+      "DockPicker",
+      "ConnectionBanner"
+    ],
+    "Widget views": [
+      "WidgetView",
+      "SliderWidget",
+      "FaderWidget",
+      "NumericWidget",
+      "ButtonWidget",
+      "ToggleWidget",
+      "TextWidget",
+      "ColorWidget",
+      "JoystickWidget",
+      "CurveWidget",
+      "ScopeWidget",
+      "AssetGridWidget",
+      "TreeWidget",
+      "QueueWidget",
+      "ChatWidget",
+      "EngineViewport",
+      "MeterWidget",
+      "TransformWidget"
+    ],
+    "Actions": [
+      "Button",
+      "ToggleGroup",
+      "Kbd"
+    ],
+    "Forms": [
+      "Input",
+      "Textarea",
+      "Field",
+      "Switch",
+      "Checkbox",
+      "Slider",
+      "Select",
+      "Combobox",
+      "NumberInput",
+      "RadioGroup",
+      "Calendar",
+      "DatePicker",
+      "FileUpload"
+    ],
+    "Surfaces": [
+      "Card",
+      "Separator",
+      "ScrollArea"
+    ],
+    "Navigation": [
+      "Tabs",
+      "Breadcrumb",
+      "Pagination",
+      "DropdownMenu",
+      "ContextMenu",
+      "Accordion",
+      "Collapsible"
+    ],
+    "Overlays": [
+      "Dialog",
+      "Sheet",
+      "Popover",
+      "Tooltip",
+      "TooltipProvider",
+      "CommandPalette"
+    ],
+    "Feedback": [
+      "Badge",
+      "Skeleton",
+      "Progress",
+      "Alert",
+      "Empty",
+      "ToastProvider",
+      "useToast"
+    ],
+    "People and data": [
+      "Avatar",
+      "AvatarGroup",
+      "DataTable",
+      "Sparkline"
+    ],
+    "Production": [
+      "FloatingWindow",
+      "WindowCanvas",
+      "Wordmark",
+      "BrandIcon",
+      "AgentCore",
+      "AgentCard",
+      "AgentOrchestrator",
+      "GlassProjectCard",
+      "ApprovalGate",
+      "ShotCard",
+      "MediaTransport",
+      "Timeline",
+      "ResourceMeter",
+      "ConnectionStatus",
+      "ActivityFeed",
+      "PromptComposer",
+      "Metric"
+    ]
+  },
+  "themes": [
+    "dark",
+    "light"
+  ],
+  "density": [
+    "comfortable",
+    "compact"
+  ],
+  "backend": "Controlled props; no bundled aiohttp server"
+}
