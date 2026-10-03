@@ -73,8 +73,10 @@ export function GlassPanel({id,title,icon,accent,boundsRef,placement,onPlacement
   el.style.transform=`translate(${live.current.x}px, ${live.current.y}px)`;
   el.style.width=`${live.current.w}px`;
  },[]);
- /* Re-clamp when the container shrinks. */
- React.useLayoutEffect(()=>{
+ /* Re-clamp when the container resizes. A PASSIVE effect on purpose: a layout effect runs before the host's ref to the
+    container is attached (children commit first), so the observer would never start and a panel placed with a huge
+    x/y ("that edge") would stay off screen. */
+ React.useEffect(()=>{
   const c=boundsRef.current;if(!c||typeof ResizeObserver==='undefined')return;
   const ro=new ResizeObserver(()=>{
    const w=placement.w??width,{x,y}=clamp(placement.x,placement.y,w);
