@@ -5,3 +5,4 @@ export * from '../ui/advanced';
 export * from '../ui/notifications';
 export {cn} from '../../lib/utils';
 export {springs,durations,enter} from '../../lib/motion';
+export * from './glass-panel';
