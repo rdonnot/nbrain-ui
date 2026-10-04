@@ -84,5 +84,14 @@ await wait(900);
 check('Toast: update re-arms the timeout and the card leaves',!card());
 const e1=t.error('boom');await wait();check('Toast: error sugar renders as an alert',d.querySelector(`[data-toast-id="${e1}"]`)?.getAttribute('role')==='alert');
 t.dismiss(e1);await wait(500);check('Toast: dismiss by id',!d.querySelector(`[data-toast-id="${e1}"]`));
+
+// split stylesheet: every selector of the full sheet lives in exactly one split file, and the files are the ones the package exports
+import postcss from 'postcss';
+const sels=file=>{const out=[];postcss.parse(fs.readFileSync(file,'utf8')).walkRules(r=>{if(r.parent.type==='atrule'&&/keyframes/.test(r.parent.name))return;const ctx=r.parent.type==='atrule'?'@'+r.parent.name+r.parent.params+' ':'';for(const s of r.selectors)out.push(ctx+s+'{'+r.nodes.map(n=>n.toString()).join(';')+'}')});return out};
+const full=sels('dist/styles.css'),parts=fs.readdirSync('dist/styles').filter(f=>f.endsWith('.css')).flatMap(f=>sels('dist/styles/'+f));
+const have=new Set(parts);const missing=full.filter(x=>!have.has(x));
+check('Split CSS: base.css exists and is smaller than the full sheet',fs.statSync('dist/styles/base.css').size<fs.statSync('dist/styles.css').size*.6);
+check('Split CSS: every rule of styles.css is in some split file ('+missing.length+' missing)',missing.length===0);
+check('Split CSS: base.css has the tokens and no radial/widget rules',/--nb-background/.test(fs.readFileSync('dist/styles/base.css','utf8'))&&!/nb-radial-/.test(fs.readFileSync('dist/styles/base.css','utf8'))&&!/nb-widget-frame/.test(fs.readFileSync('dist/styles/base.css','utf8')));
 check('No runtime errors',failures.length===0);
 fs.writeFileSync('v06-checks.json',JSON.stringify({checks,failures},null,2));console.log(JSON.stringify({checks:checks.length,failures},null,2));dom.window.close();process.exit(failures.length?1:0);
