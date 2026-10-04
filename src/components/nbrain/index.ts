@@ -8,3 +8,6 @@ export {springs,durations,enter} from '../../lib/motion';
 export * from './glass-panel';
 export * from '../ui/choice-card';
 export * from '../ui/tab-strip';
+export * from '../ui/density';
+export * from '../ui/icon-controls';
+export * from '../ui/compound';

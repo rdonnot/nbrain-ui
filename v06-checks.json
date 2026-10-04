@@ -1,0 +1,29 @@
+{
+  "checks": [
+    "DensityScope sets data-nbrain-density=compact",
+    "DensityScope carries the font scale",
+    "Button size xs",
+    "IconButton keeps its aria-label and the icon-xs size",
+    "Segmented: icon-only items are named by aria-label",
+    "Segmented: first item is checked and focusable only",
+    "Segmented: arrow key moves to the next enabled item",
+    "Segmented: arrow key skips the disabled item",
+    "SelectContent renders items in a compact popup",
+    "SelectLabel and SelectSeparator render",
+    "DropdownMenu parts render (label, destructive item, shortcut, check, radio, sub trigger)",
+    "DropdownMenuItem click runs the handler",
+    "PopoverContent with header, title, description",
+    "SheetContent opens on the requested side with a close button",
+    "SheetClose closes it",
+    "ContextMenu opens with shortcut, separator, submenu and disabled entries",
+    "ContextMenu item click runs the handler",
+    "Toast: kind, progress bar and action render",
+    "Toast: same id replaces in place (no duplicate)",
+    "Toast: update patches in place",
+    "Toast: update re-arms the timeout and the card leaves",
+    "Toast: error sugar renders as an alert",
+    "Toast: dismiss by id",
+    "No runtime errors"
+  ],
+  "failures": []
+}
