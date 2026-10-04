@@ -1,6 +1,6 @@
 # Component inventory
 
-89 exported components/providers/hooks. The review board groups them into 12 visual sections.
+96 exported components/providers/hooks. The review board groups them into 12 visual sections.
 
 ## Circular inspector
 
@@ -61,6 +61,15 @@
 - `Calendar`
 - `DatePicker`
 - `FileUpload`
+- `NativeSelect`
+- `CheckInput`
+- `SwitchInput`
+- `Radio`
+- `RangeInput`
+- `ColorInput`
+- `FileInput`
+
+The seven newest Forms entries (0.7) are native-element drop-ins: real `<select>`/`<input>` elements with the library's tokens.
 
 ## Surfaces
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.0
+
+Native-element drop-ins, so raw `<select>` and `<input type=checkbox|radio|range|color|file>` in dense widget UIs can move to the library without rewriting their handlers.
+
+- **New:** `NativeSelect`, `CheckInput`, `SwitchInput`, `Radio`, `RangeInput`, `ColorInput`, `FileInput`. Real elements, the element's own props (`ref`, `data-*`, `aria-*`, `id`, `name`, native `onChange(e)`), `nb-*` tokens, compact density (also inside `<DensityScope asContext>`, where the element carries `data-nbrain-density` itself).
+- **Checkbox / Switch** (Base UI): `label` optional (then `aria-label`/`aria-labelledby` required), `defaultChecked`, `indeterminate`, `id`/`name`, `data-*`, `ref`; now `forwardRef` components. They still take `onCheckedChange` only; the native `onChange` variants are `CheckInput`/`SwitchInput`.
+- **Input / Textarea**: `size` `xs`/`sm`/`md`; the native `size` attribute is now `htmlSize`. Date/time/datetime-local/number/search get a theme-aware picker icon, tabular numerals, no layout jump; they also carry the density attributes.
+- `buttonVariants`, `sizeClass`, `useControlDensity` and the `ControlSize` type are exported.
+- New `verify-v07` test (`npm test`), atelier "Native drop-ins" specimens in the Inputs section.
+
+
 ## 0.6.0
 
 App-integration release (everything the N'Brain app needs before it can drop its own Base UI wrappers).

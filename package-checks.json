@@ -1,5 +1,5 @@
 {
-  "package": "nbrain-ui-0.6.0.tgz",
+  "package": "nbrain-ui-0.7.0.tgz",
   "checks": [
     "Install tarball into independent consumer",
     "ESM and SSR render",

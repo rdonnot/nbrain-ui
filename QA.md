@@ -51,3 +51,7 @@ The review page is a complete working prototype with simulated production data. 
 ## 0.3.3 frosted and compact inspector
 
 45 radial DOM checks pass. New checks cover compact/full sizing, shared floating sizing, preserved values after switching, press-time stability in the center, center dragging without navigation, and retained nested command Back. Actual glass rendering and pointer/touch feel still require browser review.
+
+## 0.7 native drop-ins
+
+`scripts/verify-v07.mjs` (jsdom) renders every new component and checks prop forwarding (id, name, data-*, aria-*, ref), native `onChange`, controlled/uncontrolled values, the `--nb-range-pct` fill, indeterminate, file names, Input/Textarea sizes and the compact density attributes. Not verified here: real browser rendering of the webkit/moz range, colour and date pseudo-elements, the dark-theme date icon and mobile pickers.
