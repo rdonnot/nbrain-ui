@@ -11,3 +11,4 @@ export * from '../ui/tab-strip';
 export * from '../ui/density';
 export * from '../ui/icon-controls';
 export * from '../ui/compound';
+export * from '../ui/native-controls';
