@@ -23,6 +23,14 @@ The generated declarations in `dist/` are authoritative. Every component is expo
 | AssetGridWidget / TreeWidget / QueueWidget | Supplied items, selection/action callbacks; Tree owns disclosure state. |
 | ChatWidget | Supplied messages, send callback; owns only the draft composer text. |
 | EngineViewport | Header/footer slots and renderer children; no Three, map, audio or NLE runtime dependency. |
+| Density | `data-nbrain-density="compact"` on any ancestor, or `<DensityScope density fontScale asContext>`; `useDensity()`. Compact = xs controls, 24 px inputs, 11-12 px text x `--nb-font-scale`. Popups opened inside a DensityScope inherit it. |
+| Button sizes | `xs`, `sm`, `md`, `lg`, `icon`, `icon-xs`. |
+| IconButton | `aria-label` (required), `icon`, `size` xs/sm/md, `tooltip` (default the label, `false` = none), `pressed`, plus Button props. |
+| SegmentedControl | `items` ({value,label,icon?,tooltip?,disabled?}), `value`, `onValueChange`, `label` (group name), `iconOnly`, `size`. |
+| Select / DropdownMenu / Popover / Sheet parts | See CHANGELOG 0.6.0 for the part list; roots are `SelectRoot`, `DropdownMenuRoot`, `PopoverRoot`, `SheetRoot`. Props follow the shadcn Base UI wrappers (`SelectTrigger size`, `DropdownMenuItem variant="destructive"`, `SheetContent side showCloseButton`, ...). Menu labels must sit inside a `*Group`. |
+| ContextMenu | `items`: `{label,onClick,icon,shortcut,danger,disabled,checked,children}` or `{type:'separator'}` / `{type:'label',label}`; `disabled` turns the trigger into a plain wrapper. |
+| toast | `toast({id,kind,title,message,description,action,actions,progress,timeout})` returns the id; same id replaces in place; `toast.update(id,patch)`; `.dismiss(id)`, `.dismissAll()`, `.error/.success/.info/.warning(message,title?,opts?)`. Kinds: info, success, warning, error, running (sticky). Render `<ToastHost max/>` once (or `ToastProvider`). |
+| CSS entry points | `@nbrain/ui/styles.css` (all) or `@nbrain/ui/styles/base.css` + only the component files you use: `radial`, `tabstrip`, `choice`, `window`, `widgets`, `production`. |
 
 ## Action boundary
 

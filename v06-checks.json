@@ -23,6 +23,9 @@
     "Toast: update re-arms the timeout and the card leaves",
     "Toast: error sugar renders as an alert",
     "Toast: dismiss by id",
+    "Split CSS: base.css exists and is smaller than the full sheet",
+    "Split CSS: every rule of styles.css is in some split file (0 missing)",
+    "Split CSS: base.css has the tokens and no radial/widget rules",
     "No runtime errors"
   ],
   "failures": []
